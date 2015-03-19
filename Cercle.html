@@ -1,0 +1,165 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<!-- DW6 -->
+<head>
+<!-- Copyright 2005 Macromedia, Inc. All rights reserved. -->
+<title>Arc Temperature moyenne annuelle</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<link rel="stylesheet" href="style.css" type="text/css" />
+<script language="JavaScript" type="text/javascript">
+//--------------- LOCALIZEABLE GLOBALS---------------
+var d=new Date();
+monthname= new Array("Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre");
+//Ensure correct for language. English is "January 1, 2004"
+var TODAY = monthname[d.getMonth()] + " " + d.getDate() + ", " + d.getFullYear();
+//--------------- END LOCALIZEABLE   ---------------
+</script>
+<style type="text/css">
+body {
+  font: 10px sans-serif;
+}
+<!--
+.Style3 {
+	color: #66FF00;
+	font-size: 36px;
+}
+.Style4 {
+	font-size: 16px;
+	color: #FFFF00;
+}
+.Style5 {color: #FF0000}
+.Style7 {font-family: Georgia, "Times New Roman", Times, serif}
+.Style19 {color: #000000}
+.Style20 {
+	color: #000000;
+	font-family: "Times New Roman", Times, serif;
+	font-weight: bold;
+	font-size: 24px;
+}
+.Style21 {
+	font-family: "Times New Roman", Times, serif;
+	font-size: 24px;
+	color: #000000;
+}
+.Style22 {color: #0000FF; font-family: "Times New Roman", Times, serif; font-weight: bold; font-size: 24px; }
+.Style25 {
+	color: #0000FF;
+	font-weight: bold;
+	font-family: Georgia, "Times New Roman", Times, serif;
+	font-size: 36px;
+}
+.Style26 {
+	color: #000000;
+	font-family: Georgia, "Times New Roman", Times, serif;
+	font-size: 24px;
+}
+-->
+</style>
+</head>
+<body >
+
+<div id="container">
+<table width="100%" height="20" border="0" cellpadding="0" cellspacing="0" bgcolor="#FFFFCC" >
+  <tr bgcolor="#3333CC" >
+    <td colspan="3" rowspan="2" bgcolor="#1ec7d6"><img src="logo_umlv.gif" alt="Header image" width="500" height="157" border="0" /></td>
+    <td height="87" colspan="3" align="center" valign="bottom" nowrap="nowrap" bgcolor="#0066CC" id="logo"><span class="Style26">Projet Représentation de Connaisances</span> </td>
+    <td width="4" bgcolor="#0066CC">&nbsp;</td>
+  </tr>
+
+  <tr bgcolor="#3333CC">
+    <td height="68" colspan="3" align="center" valign="top" bgcolor="#0066CC" id="tagline"><p class="Style4">Les Indicateurs du Climat en France </p>    </td>
+	<td width="4" bgcolor="#0066CC">&nbsp;</td>
+  </tr>
+  <tr bgcolor="#99CC66">
+    <td height="26" colspan="7" bgcolor="#77a80c" id="dateformat">&nbsp;&nbsp;
+        <script language="JavaScript" type="text/javascript">
+      document.write(TODAY);	</script></td>
+  </tr>
+  </table>
+  <br><br>
+      <tr>
+		<td width="220"><a href=Temperature.html class="navText"> <span class="Style5">Temperature moyenne annuelle</span></a></td><br>
+		<td width="220"><a href=NombreAJG.html class="navText"> <span class="Style5">Nombre annuel de jours de gel</span></a></td><br>
+		<td width="220"><a href=Histo.html class="navText"> <span class="Style5"> Histogramme de la temperature moyenne annuelle</span></a></td><br>
+		<td width="220"><a href=Cercle.html class="navText"> <span class="Style5"> Nombre Annuel de jours de gel dans chaque département de France</span></a></td>
+
+      </tr>
+	  	  
+ <script src="./d3.v3.min.js"></script>
+<h1><UL>Nombre Annuel de jours de gel dans chaque département de France</UL></h1><br><br>
+<script>
+
+var radius = 74,
+    padding = 10;
+
+var color = d3.scale.ordinal()
+    .range(["#98abc5","#a05d56", "#8a89a6", "#6b486b", "#d0743c", "#ff8c00"]);
+
+var arc = d3.svg.arc()
+    .outerRadius(radius)
+    .innerRadius(radius - 30);
+
+var pie = d3.layout.pie()
+    .sort(null)
+    .value(function(d) { return d.population; });
+
+d3.csv("NombreAJG.csv", function(error, data) {
+  color.domain(d3.keys(data[0]).filter(function(key) { return (key !== "Lieu" && key !== "X2002"&& key !== "X2003"&& key !== "X2004"&& key !== "X2005" && key !== "X2006"&& key !== "X2007" && key !== "lat"  && key !== "long" && key !== "Ndepartement" && key !=="long"&& key !=="lat" && key !=="Serie" && key !=="Unite"); }));
+
+  data.forEach(function(d) {
+    d.ages = color.domain().map(function(name) {
+      return {name: name, population: +d[name]};
+    });
+  });
+
+  var legend = d3.select("body").append("svg")
+      .attr("class", "legend")
+      .attr("width", radius * 2)
+      .attr("height", radius * 2)
+    .selectAll("g")
+      .data(color.domain().slice().reverse())
+    .enter().append("g")
+      .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
+
+  legend.append("rect")
+      .attr("width", 18)
+      .attr("height", 18)
+      .style("fill", color);
+
+  legend.append("text")
+      .attr("x", 24)
+      .attr("y", 9)
+      .attr("dy", ".35em")
+      .text(function(d) { return d; });
+
+  var svg = d3.select("body").selectAll(".pie")
+      .data(data)
+    .enter().append("svg")
+      .attr("class", "pie")
+      .attr("width", radius * 2)
+      .attr("height", radius * 2)
+    .append("g")
+      .attr("transform", "translate(" + radius + "," + radius + ")");
+
+  svg.selectAll(".arc")
+      .data(function(d) { return pie(d.ages); })
+    .enter().append("path")
+      .attr("class", "arc")
+      .attr("d", arc)
+      .style("fill", function(d) { return color(d.data.name); });
+
+  svg.append("text")
+      .attr("dy", ".35em")
+      .style("text-anchor", "middle")
+      .text(function(d) { return d.Lieu; });
+
+  svg.append("title").html(function(d){return d.Lieu+": "+d.X2012})
+
+
+})
+
+
+</script>
+</body>
+</html>

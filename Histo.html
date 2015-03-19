@@ -1,0 +1,198 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<!-- DW6 -->
+<head>
+<!-- Copyright 2005 Macromedia, Inc. All rights reserved. -->
+<title>Histogramme Temperature moyenne annuelle</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<link rel="stylesheet" href="style.css" type="text/css" />
+<script language="JavaScript" type="text/javascript">
+//--------------- LOCALIZEABLE GLOBALS---------------
+var d=new Date();
+monthname= new Array("Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre");
+//Ensure correct for language. English is "January 1, 2004"
+var TODAY = monthname[d.getMonth()] + " " + d.getDate() + ", " + d.getFullYear();
+//--------------- END LOCALIZEABLE   ---------------
+</script>
+<style type="text/css">
+
+<!--
+.Style3 {
+	color: #66FF00;
+	font-size: 36px;
+}
+.Style4 {
+	font-size: 16px;
+	color: #FFFF00;
+}
+.Style5 {color: #FF0000}
+.Style7 {font-family: Georgia, "Times New Roman", Times, serif}
+.Style19 {color: #000000}
+.Style20 {
+	color: #000000;
+	font-family: "Times New Roman", Times, serif;
+	font-weight: bold;
+	font-size: 24px;
+}
+.Style21 {
+	font-family: "Times New Roman", Times, serif;
+	font-size: 24px;
+	color: #000000;
+}
+.Style22 {color: #0000FF; font-family: "Times New Roman", Times, serif; font-weight: bold; font-size: 24px; }
+.Style25 {
+	color: #0000FF;
+	font-weight: bold;
+	font-family: Georgia, "Times New Roman", Times, serif;
+	font-size: 36px;
+}
+.Style26 {
+	color: #000000;
+	font-family: Georgia, "Times New Roman", Times, serif;
+	font-size: 24px;
+}
+-->
+</style>
+</head>
+<body >
+
+<div id="container">
+<table width="100%" height="20" border="0" cellpadding="0" cellspacing="0" bgcolor="#FFFFCC" >
+  <tr bgcolor="#3333CC" >
+    <td colspan="3" rowspan="2" bgcolor="#1ec7d6"><img src="logo_umlv.gif" alt="Header image" width="500" height="157" border="0" /></td>
+    <td height="87" colspan="3" align="center" valign="bottom" nowrap="nowrap" bgcolor="#0066CC" id="logo"><span class="Style26">Projet Représentation de Connaisances</span> </td>
+    <td width="4" bgcolor="#0066CC">&nbsp;</td>
+  </tr>
+
+  <tr bgcolor="#3333CC">
+    <td height="68" colspan="3" align="center" valign="top" bgcolor="#0066CC" id="tagline"><p class="Style4">Les Indicateurs du Climat en France </p>    </td>
+	<td width="4" bgcolor="#0066CC">&nbsp;</td>
+  </tr>
+  <tr bgcolor="#99CC66">
+    <td height="26" colspan="7" bgcolor="#77a80c" id="dateformat">&nbsp;&nbsp;
+        <script language="JavaScript" type="text/javascript">
+      document.write(TODAY);	</script></td>
+  </tr>
+  </table>
+  <br><br>
+      <tr>
+		<td width="220"><a href=Temperature.html class="navText"> <span class="Style5">Temperature moyenne annuelle</span></a></td><br>
+		<td width="220"><a href=NombreAJG.html class="navText"> <span class="Style5">Nombre annuel de jours de gel</span></a></td><br>
+		<td width="220"><a href=Histo.html class="navText"> <span class="Style5"> Histogramme de la temperature moyenne annuelle</span></a></td><br>
+		<td width="220"><a href=Cercle.html class="navText"> <span class="Style5"> Nombre Annuel de jours de gel dans chaque département de France</span></a></td>
+
+      </tr>
+	  	  
+ <script src="./d3.v3.min.js"></script>
+</select>
+<script>
+
+var margin = {top: 20, right: 20, bottom: 30, left: 40},
+    width = 960 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom;
+
+var x0 = d3.scale.ordinal()
+    .rangeRoundBands([0, width], .1);
+
+var x1 = d3.scale.ordinal();
+
+var y = d3.scale.linear()
+    .range([height, 0]);
+
+var color = d3.scale.ordinal()
+    .range(["#98abc5", "#7c3e4e", "#c2c335", "#6b486b", "#494941", "#d0743c", "#ff8c00","#5db497","#0b986a","#ee4d76"]);
+
+var xAxis = d3.svg.axis()
+    .scale(x0)
+    .orient("bottom");
+
+var yAxis = d3.svg.axis()
+    .scale(y)
+    .orient("left")
+    .tickFormat(d3.format(".2s"));
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+d3.csv("temperature.csv", function(error, data) {
+  var ageNames = d3.keys(data[0]).filter(function(key) { return (key !== "Lieu" && key !== "Ndepartement" && key !=="long"&& key !=="lat" && key !=="Serie" && key !=="Unite"); });
+
+  data.forEach(function(d) {
+    d.ages = ageNames.map(function(name) { return {name: name, value: +d[name]}; });
+  });
+
+  x0.domain(data.map(function(d) { return d.Serie; }));
+  x1.domain(ageNames).rangeRoundBands([0, x0.rangeBand()]);
+  y.domain([0, d3.max(data, function(d) { return d3.max(d.ages, function(d) { return d.value; }); })]);
+
+  svg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(xAxis);
+
+  svg.append("g")
+      .attr("class", "y axis")
+      .call(yAxis)
+    .append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 6)
+      .attr("dy", ".71em")
+      .style("text-anchor", "end")
+      .text("Temperature");
+
+  var state = svg.selectAll(".state")
+      .data(data)
+    .enter().append("g")
+      .attr("class", "g")
+      .attr("transform", function(d) { return "translate(" + x0(d.Serie) + ",0)"; });
+
+  state.selectAll("rect")
+      .data(function(d) { return d.ages; })
+    .enter().append("rect")
+      .attr("width", x1.rangeBand())
+      .attr("x", function(d) { return x1(d.name); })
+      .attr("y", function(d) { return y(d.value); })
+      .attr("height", function(d) { return height - y(d.value); })
+      .style("fill", function(d) { return color(d.name); });
+
+  var legend = svg.selectAll(".legend")
+      .data(ageNames.slice().reverse())
+    .enter().append("g")
+      .attr("class", "legend")
+      .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
+
+  legend.append("rect")
+      .attr("x", width - 18)
+      .attr("width", 18)
+      .attr("height", 18)
+      .style("fill", color);
+
+  legend.append("text")
+      .attr("x", width - 24)
+      .attr("y", 9)
+      .attr("dy", ".35em")
+      .style("text-anchor", "end")
+      .text(function(d) { return d; });
+
+      var update= function(feature){
+  var circles = d3.selectAll("circle")
+  // d3.rgb("#ag4444").darker()
+  circles.transition().duration(2000).ease(d3.ease("quad"))
+    .attr("r",function(d){return scalecircle(d[feature])})
+    .style("fill",function(d){return scalecolor(d[feature]) })
+    .style("stroke",function(d){return d3.rgb(scalecolor(d[feature])).darker() })
+  
+  circles.selectAll("title").html(function(d){return d.Lieu + " : " + d3.round(d[feature],1) })
+
+}
+
+});
+
+</script>
+
+</body>
+</html>
